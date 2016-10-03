@@ -29,9 +29,7 @@ app.post('/post', function (request, response) {
 	// VALIDATE INPUT
 
 
-	//console.log(request);
-	console.log(request.body);
-
+	// insert input to database
 	db.collection('events_list', function(err, collection) {	
 		collection.insert( {"Date":request.body.date, "Time":request.body.time, 
 				"Food":request.body.food, "Sponsor":request.body.sponsor,
@@ -64,7 +62,7 @@ app.get('/', function (request, response) {
 				console.log('bad');
 				response.send([]);
 			}
-		});
+		//});
 		
 	});
 
