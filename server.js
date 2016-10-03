@@ -29,10 +29,10 @@ app.post('/post', function (request, response) {
 	// VALIDATE INPUT
 
 	// get date of input
-	var req_date = Date(request.body.date);
-	req_date = req_date.setDate(req_date.getDate()+1);
+	//var req_date = Date(request.body.date);
+	//req_date = req_date.setDate(req_date.getDate()+1);
 
-	var date = new Date();
+	//var date = new Date();
 
 	// checks for proper parameters, if true insert input to database
 	// Checks that:
