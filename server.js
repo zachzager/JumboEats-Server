@@ -42,7 +42,8 @@ app.post('/post', function (request, response) {
 	if ( (typeof request.body.date === "string" && typeof request.body.time === "string" 
 				&& typeof request.body.food === "string" && typeof request.body.sponsor === "string"
 				&& typeof request.body.location === "string" && typeof request.body.other === "string") 
-		&& (request.body.date.length > 0 && request.body.time > 0 && request.body.food > 0 && request.body.location > 0) ) {
+		&& (request.body.date.length > 0 && request.body.time.length > 0 
+				&& request.body.food.length > 0 && request.body.location.length > 0) ) {
 		//&& (req_date.getMonth() > date.getMonth() || 
 		//		(req_date.getMonth() === date.getMonth() && req_date.getDate() >= date.getDate())) ) {
 		
