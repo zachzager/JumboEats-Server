@@ -16,13 +16,14 @@ app.all('/*', function(request, response, next) {
 });
 
 // Mongo initialization, setting up a connection to a MongoDB  (on Heroku or localhost)
-var mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/FOOD_EVENTS_V1';
+//var mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/FOOD_EVENTS_V1';
+var mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://heroku_h5ng6mhk:8lbubrnjqrhck82sle6t0j1856@ds049446.mlab.com:49446/heroku_h5ng6mhk';
 var MongoClient = require('mongodb').MongoClient, format = require('util').format;
 	var db = MongoClient.connect(mongoUri, function (error, databaseConnection) {
 	db = databaseConnection;
 });
 
-// get data from app
+// get user data from app
 app.post('/post', function (request, response) {
 
 	// VALIDATE INPUT
