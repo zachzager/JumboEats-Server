@@ -29,7 +29,7 @@ app.post('/post', function (request, response) {
 	// VALIDATE INPUT
 
 	// get date of input
-	req_date = Date(request.body.date);
+	req_date = new Date(request.body.date);
 	req_date = req_date.setDate(req_date.getDate()+1);
 
 	date = new Date();
