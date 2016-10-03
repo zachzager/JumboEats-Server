@@ -29,9 +29,10 @@ app.post('/post', function (request, response) {
 	// VALIDATE INPUT
 
 	// checks for proper parameters, if true insert input to database
-	if (typeof request.body.date === "string" && typeof request.body.time === "string" 
+	if ( (typeof request.body.date === "string" && typeof request.body.time === "string" 
 				&& typeof request.body.food === "string" && typeof request.body.sponsor === "string"
-				&& typeof request.body.location === "string" && typeof request.body.other === "string") {
+				&& typeof request.body.location === "string" && typeof request.body.other === "string") 
+		&& (request.body.date.length > 0 && request.body.time > 0 && request.body.food > 0 && request.body.location > 0) ) {
 		
 		db.collection('events_list', function(err, collection) {	
 			collection.insert( {"Date":request.body.date, "Time":request.body.time, 
