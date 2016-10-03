@@ -44,7 +44,7 @@ app.post('/post', function (request, response) {
 				&& typeof request.body.location === "string" && typeof request.body.other === "string") 
 		&& (request.body.date.length > 0 && request.body.time > 0 && request.body.food > 0 && request.body.location > 0) 
 		&& (req_date.getMonth() > date.getMonth() || 
-				(req_date.getMonth() === date.getMonth() && req_date.getDate() >= date.getDate()) ) {
+				(req_date.getMonth() === date.getMonth() && req_date.getDate() >= date.getDate())) ) {
 		
 		db.collection('events_list', function(err, collection) {	
 			collection.insert( {"Date":request.body.date, "Time":request.body.time, 
