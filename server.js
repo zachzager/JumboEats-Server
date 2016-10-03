@@ -28,14 +28,22 @@ app.post('/post', function (request, response) {
 
 	// VALIDATE INPUT
 
+	// checks for proper parameters, if true insert input to database
+	if (typeof request.body.date === "string" && typeof request.body.time === "string" 
+				&& typeof request.body.food === "string" && typeof request.body.sponsor === "string"
+				&& typeof request.body.location === "string" && typeof request.body.other === "string") {
+		
+		db.collection('events_list', function(err, collection) {	
+			collection.insert( {"Date":request.body.date, "Time":request.body.time, 
+					"Food":request.body.food, "Sponsor":request.body.sponsor,
+					"Location":request.body.location, "Other":request.body.other} );
+		});		
+	}
 
-	// insert input to database
-	db.collection('events_list', function(err, collection) {	
-		collection.insert( {"Date":request.body.date, "Time":request.body.time, 
-				"Food":request.body.food, "Sponsor":request.body.sponsor,
-				"Location":request.body.location, "Other":request.body.other} );
-	});
+	else { // returns error statement if improper
 
+		response.send({"error":"Whoops, something is wrong with your data!"});
+	}
 
 	response.send();
 
@@ -53,7 +61,6 @@ app.get('/', function (request, response) {
 
 	db.collection('events_list', function(err, collection) {
 		
-		//collection.find({"Food": request.query.Food}).toArray(function(err, cursor) {
 		collection.find().toArray(function(err, cursor) {
 			if (!err) {
 				console.log(cursor);
