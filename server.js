@@ -41,9 +41,9 @@ app.post('/post', function (request, response) {
 	// - day of event has not already passed
 	if ( (typeof request.body.date === "string" && typeof request.body.time === "string" 
 				&& typeof request.body.food === "string" && typeof request.body.sponsor === "string"
-				&& typeof request.body.location === "string" && typeof request.body.other === "string") ) {
-		//&& (request.body.date.length > 0 && request.body.time.length > 0 
-		//		&& request.body.food.length > 0 && request.body.location.length > 0) ) {
+				&& typeof request.body.location === "string" && typeof request.body.other === "string")
+		&& (request.body.date.length > 0 && request.body.time.length > 0 
+				&& request.body.food.length > 0 && request.body.location.length > 0) ) {
 		//&& (req_date.getMonth() > date.getMonth() || 
 		//		(req_date.getMonth() === date.getMonth() && req_date.getDate() >= date.getDate())) ) {
 		
