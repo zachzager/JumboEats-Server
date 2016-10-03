@@ -54,7 +54,7 @@ app.get('/', function (request, response) {
 	db.collection('events_list', function(err, collection) {
 		
 		//collection.find({"Food": request.query.Food}).toArray(function(err, cursor) {
-			collection.find().toArray(function(err, cursor) {
+		collection.find().toArray(function(err, cursor) {
 			if (!err) {
 				console.log(cursor);
 				response.send(cursor);
@@ -62,7 +62,7 @@ app.get('/', function (request, response) {
 				console.log('bad');
 				response.send([]);
 			}
-		//});
+		});
 		
 	});
 
