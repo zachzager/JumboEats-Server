@@ -29,10 +29,10 @@ app.post('/post', function (request, response) {
 	// VALIDATE INPUT
 
 	// get date of input
-	//req_date = Date(request.body.date);
-	//req_date = req_date.setDate(req_date.getDate()+1);
+	req_date = Date(request.body.date);
+	req_date = req_date.setDate(req_date.getDate()+1);
 
-	//date = new Date();
+	date = new Date();
 
 	// checks for proper parameters, if true insert input to database
 	// Checks that:
@@ -43,9 +43,9 @@ app.post('/post', function (request, response) {
 				&& typeof request.body.food === "string" && typeof request.body.sponsor === "string"
 				&& typeof request.body.location === "string" && typeof request.body.other === "string")
 		&& (request.body.date.length > 0 && request.body.time.length > 0 
-				&& request.body.food.length > 0 && request.body.location.length > 0) )
-		&& (req_date.getMonth() > new Date().getMonth() || 
-				(req_date.getMonth() === new Date().getMonth() && req_date.getDate() >= new Date().getDate())) ) {
+				&& request.body.food.length > 0 && request.body.location.length > 0)
+		&& (req_date.getMonth() > date.getMonth() || 
+				(req_date.getMonth() === date.getMonth() && req_date.getDate() >= date.getDate())) ) {
 		
 		db.collection('events_list', function(err, collection) {	
 			collection.insert( {"Date":request.body.date, "Time":request.body.time, 
