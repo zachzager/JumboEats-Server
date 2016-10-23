@@ -5,13 +5,11 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var validator = require('validator');
 var app = express();
+var cron = require('node-cron'); // Cron initialization
+var FB = require('fb'); // Facebook intialization
 
 
-// FACEBOOK INITILIZATION
-
-// FB permissions
-var FB = require('fb');
-
+// FACEBOOK
 // token generated with app_id and app_secret
 // Received 10/12/2016
 // If it is a 60 day code: Expires 12/11/2016
@@ -20,10 +18,6 @@ var longer_token = "EAAKHbAiApcsBAGfADZBn162cENZBiHBTqaPzHZAw3tgvIawslNV3ZAcZCvY
 var FB_group_id = "884846861623513"; // Finding Free Food at Tufts (Group)
 var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
 //
-
-// Cron initialization
-var cron = require('node-cron');
-
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -75,17 +69,17 @@ app.post('/post', function (request, response) {
 		});
 
 		// sends data to user
-		db.collection('events_list', function(err, collection) {
-			collection.find().toArray(function(err, cursor) {
-				if (!err) {
-					console.log(cursor);
-					response.send(cursor);
-				} else {
-					console.log('bad');
-					response.send([]);
-				}
-			});
-		});
+		// db.collection('events_list', function(err, collection) {
+		// 	collection.find().toArray(function(err, cursor) {
+		// 		if (!err) {
+		// 			console.log(cursor);
+		// 			response.send(cursor);
+		// 		} else {
+		// 			console.log('bad');
+		// 			response.send([]);
+		// 		}
+		// 	});
+		// });
 	}
 
 	else {
