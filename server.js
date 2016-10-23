@@ -69,17 +69,17 @@ app.post('/post', function (request, response) {
 		});
 
 		// sends data to user
-		db.collection('events_list', function(err, collection) {
-			collection.find().toArray(function(err, cursor) {
-				if (!err) {
-					console.log(cursor);
-					response.send(cursor);
-				} else {
-					console.log('bad');
-					response.send([]);
-				}
-			});
-		});
+		// db.collection('events_list', function(err, collection) {
+		// 	collection.find().toArray(function(err, cursor) {
+		// 		if (!err) {
+		// 			console.log(cursor);
+		// 			response.send(cursor);
+		// 		} else {
+		// 			console.log('bad');
+		// 			response.send([]);
+		// 		}
+		// 	});
+		// });
 	}
 
 	else {
