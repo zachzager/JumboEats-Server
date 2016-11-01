@@ -5,8 +5,22 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var validator = require('validator');
 var app = express();
+var helmet = require ('helmet'); // Helmet intialization
 var cron = require('node-cron'); // Cron initialization
 var FB = require('fb'); // Facebook intialization
+var RateLimit = require('express-rate-limit'); // express-rate-limit initialization
+ 
+app.enable('trust proxy');
+ 
+var limiter = new RateLimit({
+  windowMs: 5*60*1000, // 5 minutes 
+  max: 100, // limit each IP to 100 requests per windowMs 
+  delayMs: 0 // disable delaying - full speed until the max limit is reached 
+});
+ 
+//  apply to all requests 
+app.use(limiter);
+
 
 
 // FACEBOOK
@@ -21,6 +35,7 @@ var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(helmet()); // Helmet module security
 
 // Allow Cross Origin 
 app.all('/*', function(request, response, next) {
@@ -40,14 +55,7 @@ var MongoClient = require('mongodb').MongoClient, format = require('util').forma
 // get user data from app
 app.post('/post', function (request, response) {
 
-	// VALIDATE INPUT
-
-	// get date of input
-	//req_date = new Date(request.body.date);
-	// req_date = Date.parse(request.body.date);
-	// req_date = req_date.setDate(req_date.getDate()+1);
-
-	// date = new Date();
+	// TODO: CHECK DATE
 
 	// checks for proper parameters, if true insert input to database
 	// Checks that:
@@ -68,6 +76,7 @@ app.post('/post', function (request, response) {
 					"Location":request.body.location, "Other":request.body.other} );
 		});
 
+		// TODO: SEND DATA TO USER
 		// sends data to user
 		// db.collection('events_list', function(err, collection) {
 		// 	collection.find().toArray(function(err, cursor) {
@@ -99,10 +108,8 @@ app.get('/', function (request, response) {
 		
 		collection.find().toArray(function(err, cursor) {
 			if (!err) {
-				console.log(cursor);
 				response.send(cursor);
 			} else {
-				console.log('bad');
 				response.send([]);
 			}
 		});
@@ -111,19 +118,7 @@ app.get('/', function (request, response) {
 
 });
 
-// get facebook data
-// (include parsing)
-/*
-app.get('/fb_check', function (request, response) {
-	response.set('Content-Type', 'text/html');
-
-	// FB group call
-	getGroupFeed();
-
-	response.send("Facebook");
-
-});
-*/
+app.listen(process.env.PORT || 3000);
 
 // '*/2 * * * *' = every two minutes
 // '*/10 * * * * *' = every ten seconds
@@ -134,12 +129,10 @@ app.get('/fb_check', function (request, response) {
 
 // });
 
-app.listen(process.env.PORT || 3000);
 
-
-// calls Facebook group/page to 
+// pulls feed from Facebook group/page to extract individual events
 /*
-function getGroupFeed (feedID) {
+function getGroupFeed () {
 
 	FB.api(
 		"/"+feedID+"/feed/?access_token="+longer_token,
@@ -173,62 +166,6 @@ function getGroupFeed (feedID) {
 	);
 }
 */
-
-// list of items considered "food"
-/*
-var foodList = {
-	pizza: "pizza",
-	cookie: "cookie",
-	cupcakes: "cupcakes",
-	chips: "chips",
-	salsa: "salsa",
-	produce: "produce",
-	coffee: "coffee",
-	hot_chocolate: "hot chocolate",
-	ice_cream: "ice cream",
-	food: "food",
-	breakfast: "breakfast",
-	lunch: "lunch",
-	dinner: "dinner",
-	dessert: "dessert",
-	leftovers: "leftovers",
-	sandwiches: "sandwiches",
-	ice_cream_sandwiches: "ice cream sandwiches",
-	popcorn: "popcorn",
-	fry_dough: "fried dough",
-	french_toast: "french toast",
-	bread: "bread",
-	salad: "salad",
-	chicken: "chicken",
-	broccoli: "BROCCOLI",
-	pasta: "pasta",
-	lasagna: "lasagna",
-	sushi: "sushi",
-	lo_mien: "lo mien",
-	soda: "soda",
-	pie: "pie",
-	munchkins: "munchkins",
-	doughnuts: "doughnuts",
-	donuts: "donuts",
-	burritos: "burritos",
-	chipotle: "Chipotle",
-	quesadillas: "quesadillas",
-	za: "pizza",
-	pretzels: "pretzels",
-	cider: "cider",
-	apple_crisp: "apple crisp",
-	hot_dogs: "hot dogs",
-	bbq: "BBQ",
-	barbecue: "barbecue",
-	sundaes: "sundaes",
-	fruit: "fruit",
-	vegetables: "vegetables",
-	beans: "beans"
-
-};
-*/
-// REACH: get email data
-// (include parsing)
 
 
 
