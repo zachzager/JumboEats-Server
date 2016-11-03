@@ -34,8 +34,8 @@ $(document).ready(function() {
 	function fetchData () {
 		$.ajax({
 			type: "GET",
-			url: "http://localhost:3000/",
-			// url: "https://jumboeats.herokuapp.com/",
+			// url: "http://localhost:3000/",
+			url: "https://jumboeats.herokuapp.com/",
 		   	data: { format: 'json' }
 		}).then (function (data) {
 			JSONdata = JSON.parse(data);
@@ -47,16 +47,16 @@ $(document).ready(function() {
 		});
 	}
 
-		// click event listener for submission button
-	$("#fb").click(function () {
-		$.ajax({
-			type: "GET",
-			url: "http://localhost:3000/fb_check",
-			// url: "https://jumboeats.herokuapp.com/fb_check",
-			dataType: "text",
-		}).done(function (msg){
-			console.log(msg);
-		});
-	});
+	// click event listener for submission button
+	// $("#fb").click(function () {
+	// 	$.ajax({
+	// 		type: "GET",
+	// 		// url: "http://localhost:3000/fb_check",
+	// 		url: "https://jumboeats.herokuapp.com/fb_check",
+	// 		dataType: "text",
+	// 	}).done(function (msg){
+	// 		console.log(msg);
+	// 	});
+	// });
 
 });
