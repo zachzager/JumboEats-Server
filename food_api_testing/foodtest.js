@@ -1,5 +1,7 @@
 // foodtest.js
 
+// open nlp (Java application)
+
 $(document).ready(function() {
 
 	$("body").append("<h1>Food Parsing APIs Test</h1>");
@@ -30,8 +32,10 @@ $(document).ready(function() {
 	var example_2 = "Cookie decorating + AO GIM is tonight! Come to campus center at 7:00 because cookies and cupcakes runs out fast! Learn more about us and hang out with us on the weekends to come"
 	var example_3 = "Free danish homemade ice cream sandwiches! Tamper Danish Pastry House apple juice juice orange juice pineapple pineapple juice ice cream sandwich! ice cream! fries french fries cream! sandwiches! SoGo @ 7pm hot dogs hot dog";
 	var example_4 = "Fat boxes of dank produce at 33 teele ave, come and get it people// awaits you on the porch";
-	
-	findFood(example_3);
+	var example_5 = "Is there any free food today";
+	var example_6 = "GUIDE TO WORK STUDY, JOBS AND MONEY AT TUFTS over the summer, several incoming first-years have been asking about work study, jobs, saving money at tufts. they seem confused/worried/anxious about how to earn enough money, what types of jobs exist, how work study works etc.. it could be really helpful if we put together a *student-written, community-created guide* ~ money things can be scary and hard, especially in a wealthyyy college like tufts ~if you are interested, here's a google doc where we can write questions, respond to those questions and share tips/ideas/advice in general.";
+
+	findFood(example_6);
 
 	// Zomato API Key: 8eb908d1e6003b1c7643c94c50ecd283
 	// Tufts coordinates (Lat: 42.4074843, Long: -71.11902320000002)
@@ -62,7 +66,7 @@ $(document).ready(function() {
 			"underneath", "with", "without", "me", "i", "you", "us", "them",
 			"we", "we'll", "well", "too", "also", "against", "after", "among",
 			"your", "our", "and", "about", "process", "more", "less", "of",
-			"people", "person", "box", "boxes"
+			"people", "person", "box", "boxes", "winter", "spring", "summer", "fall"
 		];
 
 		// punctuation list
@@ -86,7 +90,7 @@ $(document).ready(function() {
 		return post;
 	};
 
-	// looks 
+	// looks for food words to combine
 	function combineFoods(post) {
 
 		for (var i = 0; i < post.length; i++) {
@@ -107,7 +111,7 @@ $(document).ready(function() {
 		return post;
 	}
 
-	// combine two consecutive (1 ... 2)
+	// combine two consecutive (1 ... 2) food items
 	function combineTwoConsecutive (post, i, word_1, word_2) {
 		if (post[i] === word_1 && post[i+1].includes(word_2)) {
 			post[i] += " " + post[i+1];
@@ -164,7 +168,6 @@ $(document).ready(function() {
 				var word_list = getWords(data[i].name);
 				// ensures food is an ingredient and not already in the food list
 				if (word_list.indexOf(food) !== -1 && food_list.indexOf(food) === -1) {
-					// console.log(food);
 					food_list.push(food);
 					break;
 				}

@@ -15,8 +15,8 @@ $(document).ready(function() {
 
 		$.ajax({
 			type: "POST",
-			url: "http://localhost:3000/post",
-			// url: "https://jumboeats.herokuapp.com/post",
+			// url: "http://localhost:3000/post",
+			url: "https://jumboeats.herokuapp.com/post",
 			dataType: "text",
 			data: serializedData
 		}).done(function (msg){

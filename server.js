@@ -10,29 +10,15 @@ var cron = require('node-cron'); // Cron initialization
 var FB = require('fb'); // Facebook intialization
 var RateLimit = require('express-rate-limit'); // express-rate-limit initialization
  
-app.enable('trust proxy');
- 
+// limits the rate pathway calls can be made at
 var limiter = new RateLimit({
   windowMs: 5*60*1000, // 5 minutes 
   max: 100, // limit each IP to 100 requests per windowMs 
   delayMs: 0 // disable delaying - full speed until the max limit is reached 
 });
- 
-//  apply to all requests 
-app.use(limiter);
+app.use(limiter); //  apply to all requests 
 
-
-
-// FACEBOOK
-// token generated with app_id and app_secret
-// Received 10/12/2016
-// If it is a 60 day code: Expires 12/11/2016
-// If it is an unlimited code: Expires never
-var longer_token = "EAAKHbAiApcsBAGfADZBn162cENZBiHBTqaPzHZAw3tgvIawslNV3ZAcZCvY1DjdZBR7iixhNxZBZAMTgZB4hBQTvgprZAQ8sjGaZAabCZAs6Xl4JgjTZC5TS8gAZAotzZBBPgrl8il4ZBEoO3yMnHjxu1XpmYm77";
-var FB_group_id = "884846861623513"; // Finding Free Food at Tufts (Group)
-var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
-//
-
+app.enable('trust proxy');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet()); // Helmet module security
@@ -51,6 +37,16 @@ var MongoClient = require('mongodb').MongoClient, format = require('util').forma
 	var db = MongoClient.connect(mongoUri, function (error, databaseConnection) {
 	db = databaseConnection;
 });
+
+// FACEBOOK
+// token generated with app_id and app_secret
+// Received 10/12/2016
+// If it is a 60 day code: Expires 12/11/2016
+// If it is an unlimited code: Expires never
+var longer_token = "EAAKHbAiApcsBAGfADZBn162cENZBiHBTqaPzHZAw3tgvIawslNV3ZAcZCvY1DjdZBR7iixhNxZBZAMTgZB4hBQTvgprZAQ8sjGaZAabCZAs6Xl4JgjTZC5TS8gAZAotzZBBPgrl8il4ZBEoO3yMnHjxu1XpmYm77";
+var FB_group_id = "884846861623513"; // Finding Free Food at Tufts (Group)
+var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
+//
 
 // get user data from app
 app.post('/post', function (request, response) {
