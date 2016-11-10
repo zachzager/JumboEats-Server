@@ -9,6 +9,7 @@
     "helmet": "latest",
     "mongodb": "latest",
     "node-cron": "latest",
-    "validator": "latest"
+    "validator": "latest",
+    "request": "latest"
   }
 }
