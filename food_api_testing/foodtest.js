@@ -42,6 +42,13 @@ $(document).ready(function() {
 	function restaurantCheck (post) {
 
 		var zomatoKey = "8eb908d1e6003b1c7643c94c50ecd283";
+
+		// J
+		// Q
+		// U
+		// E
+		// R
+		// Y
 		$.ajax ({
 			method: "GET",
 			url: "https://developers.zomato.com/api/v2.1/search?apikey="+zomatoKey+"&count=500&lat=42.4074843&lon=-71.11902320000002&radius=5000",
@@ -135,6 +142,13 @@ $(document).ready(function() {
 
 	// POST Classify Cuisine
 	function classifyCuisine (food) {
+
+		// J
+		// Q
+		// U
+		// E
+		// R
+		// Y
 		$.ajax ({
 			method: "POST",
 			url: classifyURL+"?ingredientList=<required>&title="+food,
@@ -154,6 +168,13 @@ $(document).ready(function() {
 
 	// GET Autocomplete Ingredient Search
 	function ingredientSearch (food) {
+
+		// J
+		// Q
+		// U
+		// E
+		// R
+		// Y
 		$.ajax ({
 			method: "GET",
 			url: ingredientSearchURL+"?metaInformation=false&number=10&query="+food,

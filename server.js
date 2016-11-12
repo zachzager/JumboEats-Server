@@ -5,6 +5,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var validator = require('validator');
 var app = express();
+var request = require('request');
 var helmet = require ('helmet'); // Helmet intialization
 var cron = require('node-cron'); // Cron initialization
 var FB = require('fb'); // Facebook intialization
@@ -119,39 +120,50 @@ app.listen(process.env.PORT || 3000);
 // '*/2 * * * *' = every two minutes
 // '*/10 * * * * *' = every ten seconds
 // pulls from Facebook every 2 minutes
-// cron.schedule('0 */2 * * * *', function() {
+// cron.schedule('0 */1 * * * *', function() {
+cron.schedule('*/10 * * * * *', function() {
+	//getGroupFeed(FB_group_id);
+	//getGroupFeed(FB_page_id);
+	// restaurantCheck();
+	console.log("cron");
+	getParsedPosts();
+});
 
-// 	getGroupFeed(FB_group_id);
 
-// });
-
+									//						//
+									//  PULL FROM FACEBOOK  //
+									//						//
 
 // pulls feed from Facebook group/page to extract individual events
-/*
-function getGroupFeed () {
+function getGroupFeed (feedID) {
 
 	FB.api(
 		"/"+feedID+"/feed/?access_token="+longer_token,
 		function (response) {
 			if (response && !response.error) {
-				// console.log('API response', response);
 				parsedResponse = response.data;
-				//console.log(parsedResponse);
 				parsedResponse.forEach(function (element, index, array) {
+					
 					console.log(element);
-					//console.log(element.message);
-					// var message = element.message;
-					// if (typeof message === "string") {
-					// 	message = message.toLowerCase();
-					// 	//console.log(message.split(" "));
-					// 	message = message.split(" ");
+					
+					// updated_time => group
+					// created_time => page
+					var time;
+					if ("updated_time" in element) {
+						console.log("group");
+						time = element.updated_time;
+					}
+					else if ("created_time" in element) {
+						console.log("page");
+						time = element.created_time;
+					}
 
-					// 	message.forEach(function (element, index, array) {
-					// 		if (element in foodList) {
-					// 			console.log(element+" "+foodList[element]);
-					// 		}
-					// 	});
-					// }
+					var elements = {"message":element.message, "time":time, "id":element.id};
+
+					db.collection('raw_fb_posts', function(err, collection) {	
+						collection.update(elements, elements, {upsert: true});
+					});
+
 
 				});
 			} else {
@@ -161,10 +173,250 @@ function getGroupFeed () {
 		}
 	);
 }
-*/
 
 
+									//						//
+									// FOOD PARSING METHODS //
+									//						//
 
+// gets parsed posts
+function getParsedPosts() {
+	db.collection('raw_fb_posts', function(err, collection) {
+		
+		collection.find().toArray(function(err, cursor) {
+			if (!err) {
+				// console.log(cursor);
+				cursor.forEach(function (element, index) {
+
+					if (typeof element.message === "string") {
+						console.log(element.message);
+						//findFood(element.message);
+					}
+
+					console.log("\n\n");
+				});
+			} else {
+				console.log("huh?");
+			}
+		});
+	});
+
+
+}
+
+// initiates food parsing methods
+function findFood(post) {
+	// console.log(post);
+	console.log("sup");
+	// restaurantCheck(post);
+	post = filterPost(post); // filters posts
+
+	// checks spoonacular API to find foods
+	post.forEach(function (element, index) {
+		classifyCuisine(element);
+		ingredientSearch(element);
+	});
+}
+
+food_list = [];
+
+// checks post for local restaurants
+function restaurantCheck () {
+	var zomatoKey = "8eb908d1e6003b1c7643c94c50ecd283";
+	var tuftsLat = "42.4074843";
+	var tuftsLon = "-71.11902320000002";
+	var url = "https://developers.zomato.com/api/v2.1/search?apikey="+zomatoKey+"&count=500&lat="+tuftsLat+"+&lon="+tuftsLon+"+&radius=5000";
+
+	request(url, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			// console.log(body);
+			body = JSON.parse(body);
+			console.log(body);
+		}
+	});
+}
+
+// breaks posts into lists of words.
+// removes punctuation and common non-food words.
+function filterPost(post) {
+
+	// English language words to be filtered out
+	var filter_words = [
+		"the", "a", "an", "one", "some", "few", "on", "off", "at", "since",
+		"before", "to", "past", "until", "by", "in", "out", "ago", "over",
+		"through", "towards", "into", "onto", "from", "between", "under",
+		"underneath", "with", "without", "me", "i", "you", "us", "them",
+		"we", "we'll", "well", "too", "also", "against", "after", "among",
+		"your", "our", "and", "about", "process", "more", "less", "of",
+		"people", "person", "box", "boxes", "winter", "spring", "summer", "fall"
+	];
+
+	// punctuation list
+	// Answer: StackOverflow user Joseph, edited by nhahtdh
+	// (http://stackoverflow.com/questions/4328500/how-can-i-strip-all-punctuation-from-a-string-in-javascript-using-regex)
+	var punctRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-.\/:;<=>?@\[\]^_`{|}~]/g;
+	var spaceRE = /\s+/g;
+	post = post.replace(punctRE, '').replace(spaceRE, ' '); // remove punctuation
+
+	var post = post.split(" ");	// break string into list
+
+	// BEFORE BREAKING INTO LIST, FIND WAY TO IDENTIFY COMPOUND WORDS 
+	// (ICE+CREAM, ICE+CREAM+SANDWICH, HOT+DOG, etc.)
+	post = combineFoods(post);
+
+	// remove filter words, numbers, etc.
+	var post = post.filter (function (value) {
+		return filter_words.indexOf(value) === -1 && isNaN(value);
+	});
+
+	return post;
+};
+
+// looks for food words to combine
+function combineFoods(post) {
+
+	for (var i = 0; i < post.length; i++) {
+		combineTwoConsecutive(post, i, "ice", "cream");
+		combineTwoConsecutive(post, i, "ice cream", "sandwich");
+		combineTwoConsecutive(post, i, "hot", "dog");
+		combineTwoConsecutive(post, i, "french", "fries");
+
+		// check if "_________ juice"
+		// THIS ONE'S SPECIAL
+		if (post[i] === "juice" && (post[i-1] === "orange" || post[i-1] === "apple" || post[i-1] === "cranberry" ||
+				post[i-1] === "mango" || post[i-1] === "pineapple" || post[i-1] === "grape")) {
+			post[i] = post[i-1] + " " + post[i];
+			post.splice(i-1, 1);
+			i--;
+		}
+	}
+	return post;
+}
+
+// combine two consecutive (1 ... 2) food items
+function combineTwoConsecutive (post, i, word_1, word_2) {
+	if (post[i] === word_1 && post[i+1].includes(word_2)) {
+		post[i] += " " + post[i+1];
+		post.splice(i+1, 1); // remove following index
+	}
+	return post;
+}
+
+// POST Classify Cuisine
+function classifyCuisine (food) {
+	console.log("classify");
+
+	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
+	var classifyURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/cuisine";
+
+	var options = {
+		url: classifyURL+"?ingredientList=<required>&title="+food,
+		method: "POST",
+		headers: {
+		    'X-Mashape-Key': XMashapeKey,
+	        'Content-Type': "application/x-www-form-urlencoded",
+	        "Accept": "application/json"
+		}
+	};
+
+	request(options, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			body = JSON.parse(body);
+			if (body.confidence > 0.6) { 
+				console.log(food + " " + body.confidence);
+				food_list.push(food);
+			}
+		}
+		else {
+			console.log("what?");
+		}
+	});
+
+	// $.ajax ({
+	// 	method: "POST",
+	// 	url: classifyURL+"?ingredientList=<required>&title="+food,
+	//     headers: {
+	//         'X-Mashape-Key': XMashapeKey,
+	//         'Content-Type': "application/x-www-form-urlencoded",
+	//         "Accept": "application/json"
+	//     }
+	// }).done(function (data) {
+	// 	// console.log(data);
+	// 	// ensures confidence is adequate and item not already in list
+	// 	if (data.confidence > 0.6 && food_list.indexOf(food) === -1) {
+	// 		food_list.push(food);
+	// 	}
+	// });
+}
+
+// GET Autocomplete Ingredient Search
+function ingredientSearch (food) {
+
+	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
+	var ingredientSearchURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/ingredients/autocomplete";
+	
+	var options = {
+		url: classifyURL+"?metaInformation=false&number=10&query="+food,
+		method: "POST",
+		headers: {
+		    'X-Mashape-Key': XMashapeKey,
+	        'Content-Type': "application/x-www-form-urlencoded",
+	        "Accept": "application/json"
+		}
+	};
+
+	request(options, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			body = JSON.parse(body);
+			// 	check each returned ingredient for complete instance of passed in food
+			for (var i = 0; i < body.length; i++) {
+				var word_list = getWords(data[i].name);
+				// ensures food is an ingredient and not already in the food list
+				if (word_list.indexOf(food) !== -1 && food_list.indexOf(food) === -1) {
+					food_list.push(food);
+					break;
+				}
+			}
+		}
+		else {
+			console.log("what?");
+		}
+	});
+
+
+	// $.ajax ({
+	// 	method: "GET",
+	// 	url: ingredientSearchURL+"?metaInformation=false&number=10&query="+food,
+	//     headers: {
+	//         'X-Mashape-Key': XMashapeKey,
+	//         'Content-Type': "application/x-www-form-urlencoded",
+	//         "Accept": "application/json"
+	//     }
+	// }).done(function (data) {
+	// 	// check each returned ingredient for complete instance of passed in food
+	// 	for (var i = 0; i < data.length; i++) {
+	// 		var word_list = getWords(data[i].name);
+	// 		// ensures food is an ingredient and not already in the food list
+	// 		if (word_list.indexOf(food) !== -1 && food_list.indexOf(food) === -1) {
+	// 			food_list.push(food);
+	// 			break;
+	// 		}
+	// 	}
+	// });
+}
+
+// returns a list of all the words including the full string
+function getWords(food) {
+	var list = [];
+	list.push(food);
+	var food_parts = food.split(" ");	// break string into list
+	if (food_parts.length > 1) {
+		food_parts.forEach(function (element, index) {
+			list.push(element);
+		});
+	}
+	return list;
+}
 
 
 
