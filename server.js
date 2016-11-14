@@ -120,8 +120,8 @@ app.listen(process.env.PORT || 3000);
 // '*/2 * * * *' = every two minutes
 // '*/10 * * * * *' = every ten seconds
 // pulls from Facebook every 2 minutes
-// cron.schedule('0 */1 * * * *', function() {
-cron.schedule('*/10 * * * * *', function() {
+cron.schedule('0 */1 * * * *', function() {
+// cron.schedule('*/10 * * * * *', function() {
 	//getGroupFeed(FB_group_id);
 	//getGroupFeed(FB_page_id);
 	// restaurantCheck();
@@ -190,7 +190,7 @@ function getParsedPosts() {
 
 					if (typeof element.message === "string") {
 						console.log(element.message);
-						//findFood(element.message);
+						findFood(element.message);
 					}
 
 					console.log("\n\n");
@@ -247,8 +247,11 @@ function filterPost(post) {
 		"through", "towards", "into", "onto", "from", "between", "under",
 		"underneath", "with", "without", "me", "i", "you", "us", "them",
 		"we", "we'll", "well", "too", "also", "against", "after", "among",
-		"your", "our", "and", "about", "process", "more", "less", "of",
-		"people", "person", "box", "boxes", "winter", "spring", "summer", "fall"
+		"your", "our", "and", "about", "process", "people", "person",
+		"more", "less", "of", "box", "boxes", "new", "for", "food", "any",
+		"winter", "spring", "summer", "fall", "free", "use", "its", "great",
+		"extra", "club", "back", "meal", "conversation", "crisp", "little",
+		"kids", "active"
 	];
 
 	// punctuation list
@@ -280,6 +283,7 @@ function combineFoods(post) {
 		combineTwoConsecutive(post, i, "ice cream", "sandwich");
 		combineTwoConsecutive(post, i, "hot", "dog");
 		combineTwoConsecutive(post, i, "french", "fries");
+		combineTwoConsecutive(post, i, "sparkling", "water");
 
 		// check if "_________ juice"
 		// THIS ONE'S SPECIAL
@@ -304,7 +308,7 @@ function combineTwoConsecutive (post, i, word_1, word_2) {
 
 // POST Classify Cuisine
 function classifyCuisine (food) {
-	console.log("classify");
+	// console.log("classify");
 
 	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
 	var classifyURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/cuisine";
@@ -328,7 +332,7 @@ function classifyCuisine (food) {
 			}
 		}
 		else {
-			console.log("what?");
+			// console.log("classify...what?");
 		}
 	});
 
@@ -356,8 +360,8 @@ function ingredientSearch (food) {
 	var ingredientSearchURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/ingredients/autocomplete";
 	
 	var options = {
-		url: classifyURL+"?metaInformation=false&number=10&query="+food,
-		method: "POST",
+		url: ingredientSearchURL+"?metaInformation=false&number=10&query="+food,
+		method: "GET",
 		headers: {
 		    'X-Mashape-Key': XMashapeKey,
 	        'Content-Type': "application/x-www-form-urlencoded",
@@ -370,16 +374,17 @@ function ingredientSearch (food) {
 			body = JSON.parse(body);
 			// 	check each returned ingredient for complete instance of passed in food
 			for (var i = 0; i < body.length; i++) {
-				var word_list = getWords(data[i].name);
+				var word_list = getWords(body[i].name);
 				// ensures food is an ingredient and not already in the food list
 				if (word_list.indexOf(food) !== -1 && food_list.indexOf(food) === -1) {
+					console.log(food);
 					food_list.push(food);
 					break;
 				}
 			}
 		}
 		else {
-			console.log("what?");
+			// console.log("ingredients...what?");
 		}
 	});
 
@@ -418,6 +423,11 @@ function getWords(food) {
 	return list;
 }
 
-
-
+var food_dictionary = [
+	"barbecue", "pizza", "cookies",
+	"pizza", "coffee", "Indian","chocolate", "salsa",
+	"apple", "cupcakes", "cinnamon", "salsa", "hot dogs",
+	"soda", "cider", "apples", "cupcakes", "caramel", 
+	"bbq", "ice cream"
+];
 
