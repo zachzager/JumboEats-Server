@@ -40,11 +40,7 @@ var MongoClient = require('mongodb').MongoClient, format = require('util').forma
 });
 
 // FACEBOOK
-// token generated with app_id and app_secret
-// Received 10/12/2016
-// If it is a 60 day code: Expires 12/11/2016
-// If it is an unlimited code: Expires never
-var longer_token = "EAAKHbAiApcsBAGfADZBn162cENZBiHBTqaPzHZAw3tgvIawslNV3ZAcZCvY1DjdZBR7iixhNxZBZAMTgZB4hBQTvgprZAQ8sjGaZAabCZAs6Xl4JgjTZC5TS8gAZAotzZBBPgrl8il4ZBEoO3yMnHjxu1XpmYm77";
+var longer_token = "EAAKHbAiApcsBAJxfHRJgtIxSgslNQMgb7zVU0SywZAPsFXAnZA5Qf53vER4ZAMfjp25WYghpdieVaA2lrKp5Yn3yEZCNCoR4xQyIkxj2vY7tiFOXrlKmfbvs3RGKaR6RTwE7jqOLBA0jMjsM1J88sbQRA24djiCFgsAG2LtACQZDZD";
 var FB_group_id = "884846861623513"; // Finding Free Food at Tufts (Group)
 var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
 //
@@ -72,20 +68,6 @@ app.post('/post', function (request, response) {
 					"Food":request.body.food, "Sponsor":request.body.sponsor,
 					"Location":request.body.location, "Other":request.body.other} );
 		});
-
-		// TODO: SEND DATA TO USER
-		// sends data to user
-		// db.collection('events_list', function(err, collection) {
-		// 	collection.find().toArray(function(err, cursor) {
-		// 		if (!err) {
-		// 			console.log(cursor);
-		// 			response.send(cursor);
-		// 		} else {
-		// 			console.log('bad');
-		// 			response.send([]);
-		// 		}
-		// 	});
-		// });
 	}
 
 	else {
@@ -122,7 +104,7 @@ app.listen(process.env.PORT || 3000);
 // pulls from Facebook every 2 minutes
 cron.schedule('0 */1 * * * *', function() {
 // cron.schedule('*/10 * * * * *', function() {
-	//getGroupFeed(FB_group_id);
+	getGroupFeed(FB_group_id);
 	//getGroupFeed(FB_page_id);
 	// restaurantCheck();
 	console.log("cron");
@@ -141,9 +123,13 @@ function getGroupFeed (feedID) {
 		"/"+feedID+"/feed/?access_token="+longer_token,
 		function (response) {
 			if (response && !response.error) {
+
+				console.log(response.data);
+
 				parsedResponse = response.data;
 				parsedResponse.forEach(function (element, index, array) {
-					
+					console.log(feedID);
+
 					console.log(element);
 					
 					// updated_time => group
@@ -189,8 +175,9 @@ function getParsedPosts() {
 				cursor.forEach(function (element, index) {
 
 					if (typeof element.message === "string") {
-						console.log(element.message);
-						findFood(element.message);
+						// console.log(element.message);
+						// findFood(element.message);
+						detectFood(element.message);
 					}
 
 					console.log("\n\n");
@@ -200,8 +187,10 @@ function getParsedPosts() {
 			}
 		});
 	});
+}
 
-
+function detectFood(post) {
+	// console.log(post);
 }
 
 // initiates food parsing methods
@@ -231,7 +220,7 @@ function restaurantCheck () {
 		if (!error && response.statusCode == 200) {
 			// console.log(body);
 			body = JSON.parse(body);
-			console.log(body);
+			// console.log(body);
 		}
 	});
 }

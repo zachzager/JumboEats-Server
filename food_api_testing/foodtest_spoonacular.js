@@ -1,4 +1,4 @@
-// foodtest.js
+// foodtest_spoonacular.js
 
 // open nlp (Java application)
 
@@ -15,6 +15,7 @@ $(document).ready(function() {
 	var classifyURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/cuisine";
 	var ingredientSearchURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/ingredients/autocomplete";
 	var recipeSearchURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/autocomplete"
+	var detectURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/detect";
 
 	// sample list of foods
 	var cuisines = [
@@ -28,14 +29,55 @@ $(document).ready(function() {
 	];
 
 	// FFF@Tufts examples
-	var example_1 = "Interested in Law? Come meet the Tufts Pre-Law Society Board and get to know fellow pre-law students at our GIM, this Sunday, today at noon! We'll be talking about the pre-law process, our events on campus, and we'll be raffling off an ~LSAT prep course~ too. P.S. We'll have pizza"
-	var example_2 = "Cookie decorating + AO GIM is tonight! Come to campus center at 7:00 because cookies and cupcakes runs out fast! Learn more about us and hang out with us on the weekends to come"
-	var example_3 = "Free danish homemade ice cream sandwiches! Tamper Danish Pastry House apple juice juice orange juice pineapple pineapple juice ice cream sandwich! ice cream! fries french fries cream! sandwiches! SoGo @ 7pm hot dogs hot dog";
-	var example_4 = "Fat boxes of dank produce at 33 teele ave, come and get it people// awaits you on the porch";
-	var example_5 = "Is there any free food today";
-	var example_6 = "GUIDE TO WORK STUDY, JOBS AND MONEY AT TUFTS over the summer, several incoming first-years have been asking about work study, jobs, saving money at tufts. they seem confused/worried/anxious about how to earn enough money, what types of jobs exist, how work study works etc.. it could be really helpful if we put together a *student-written, community-created guide* ~ money things can be scary and hard, especially in a wealthyyy college like tufts ~if you are interested, here's a google doc where we can write questions, respond to those questions and share tips/ideas/advice in general.";
+	var examples = [];
+	examples[0] = "Interested in Law? Come meet the Tufts Pre-Law Society Board and get to know fellow pre-law students at our GIM, this Sunday, today at noon! We'll be talking about the pre-law process, our events on campus, and we'll be raffling off an ~LSAT prep course~ too. P.S. We'll have pizza"
+	examples[1] = "Cookie decorating + AO GIM is tonight! Come to campus center at 7:00 because cookies and cupcakes runs out fast! Learn more about us and hang out with us on the weekends to come"
+	examples[2] = "Free danish homemade ice cream sandwiches! Tamper Danish Pastry House apple juice juice orange juice pineapple pineapple juice ice cream sandwich! ice cream! fries french fries cream! sandwiches! SoGo @ 7pm hot dogs hot dog";
+	examples[3] = "Fat boxes of dank produce at 33 teele ave, come and get it people// awaits you on the porch";
+	examples[4] = "Is there any free food today";
+	examples[5] = "GUIDE TO WORK STUDY, JOBS AND MONEY AT TUFTS over the summer, several incoming first-years have been asking about work study, jobs, saving money at tufts. they seem confused/worried/anxious about how to earn enough money, what types of jobs exist, how work study works etc.. it could be really helpful if we put together a *student-written, community-created guide* ~ money things can be scary and hard, especially in a wealthyyy college like tufts ~if you are interested, here's a google doc where we can write questions, respond to those questions and share tips/ideas/advice in general.";
 
-	findFood(example_6);
+	for (var i = 0; i < examples.length; i++) {
+		detectFood(examples[i]);
+	}
+
+	// POST Detect Food in Text
+	function detectFood (post) {
+
+		$.ajax ({
+			method: "POST",
+			url: detectURL+"?text="+post,
+		    headers: {
+		        'X-Mashape-Key': XMashapeKey,
+		        'Content-Type': "application/x-www-form-urlencoded",
+		        "Accept": "application/json"
+		    }
+		}).done(function (data) {
+			annotations = data.annotations;
+
+			annotations = annotations.map (function (element, index) {
+				return element.annotation;
+			});
+
+			for (var i = 0; i < annotations.length; i++) {
+				for (var j = 0; j < annotations.length; j++) {
+					if (i !== j) {
+						if (annotations[j].includes(annotations[i])) {
+							annotations[i] = "";
+						}
+					}
+				}
+			}
+
+			food_list = annotations.filter (function (element, index) {
+				return element !== "";
+			});
+
+			food_list = [];
+		});
+	}
+
+	//findFood(example_6);
 
 	// Zomato API Key: 8eb908d1e6003b1c7643c94c50ecd283
 	// Tufts coordinates (Lat: 42.4074843, Long: -71.11902320000002)
