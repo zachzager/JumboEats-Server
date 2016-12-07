@@ -125,16 +125,16 @@ function getGroupFeed (feedID) {
 			if (response && !response.error) {
 
 				var parsedResponse = response.data
-				console.log(parsedResponse);
+				// console.log(parsedResponse);
 
 				parsedResponse.forEach(function (element, index, array) {
-					console.log(element);
+					// console.log(element);
 					
 					// updated_time => group
 					// created_time => page
 					var time;
 					if ("updated_time" in element) {
-						console.log("group");
+						// console.log("group");
 						time = element.updated_time;
 					}
 					else if ("created_time" in element) {
@@ -234,28 +234,15 @@ function organizeDetectedFood (res, time) {
 	annotations = annotations.filter (function (element, index) {
 		return element !== "";
 	});
-
-	console.log(annotations);
-	console.log(time);
-	console.log("");
+	var list = annotations.join(', ');
 
 	if (annotations.length > 0) {
-		var elements = {"Date":time, "Time":time, "Food": annotations.toString(), 
+		var elements = {"Date":time, "Time":time, "Food": list, 
 						"Sponsor": "", "Location": "", "Other": ""};
 		db.collection("events_list", function(err, collection) {	
 			collection.update(elements, elements, {upsert: true});
 		});
 	}
-
-// var elements = {"message":element.message, "time":time, "id":element.id};
-
-// db.collection('raw_fb_posts', function(err, collection) {	
-// 	collection.update(elements, elements, {upsert: true});
-// });
-
-	// console.log(food_list);
-
-	// food_list = [];
 
 }
 
