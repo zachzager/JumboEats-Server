@@ -40,7 +40,7 @@ var MongoClient = require('mongodb').MongoClient, format = require('util').forma
 });
 
 // FACEBOOK
-var longer_token = "EAAKHbAiApcsBAJxfHRJgtIxSgslNQMgb7zVU0SywZAPsFXAnZA5Qf53vER4ZAMfjp25WYghpdieVaA2lrKp5Yn3yEZCNCoR4xQyIkxj2vY7tiFOXrlKmfbvs3RGKaR6RTwE7jqOLBA0jMjsM1J88sbQRA24djiCFgsAG2LtACQZDZD";
+var longer_token = "EAAKHbAiApcsBAF3hhID0rkgoNJBgDZCQO9870DXzJFZCADLOTQyHOOJhpZAiZAPksXe3z5TnSdNZAonkiO5ktMzt4va39pJW9WHa0zelcACPC3nf4t2cUIFtSoLZAmkj4oZBZBHjB6hwZC67MUxTGB4ig";
 var FB_group_id = "884846861623513"; // Finding Free Food at Tufts (Group)
 var FB_page_id = "TuftsFreeFood"; // Free Food around Tufts (Page)
 //
@@ -101,14 +101,14 @@ app.listen(process.env.PORT || 3000);
 
 // '*/2 * * * *' = every two minutes
 // '*/10 * * * * *' = every ten seconds
-// pulls from Facebook every 2 minutes
-cron.schedule('0 */1 * * * *', function() {
-// cron.schedule('*/10 * * * * *', function() {
+// pulls from Facebook every minute
+// cron.schedule('0 */1 * * * *', function() {
+cron.schedule('*/10 * * * * *', function() {
 	getGroupFeed(FB_group_id);
-	//getGroupFeed(FB_page_id);
+	// getGroupFeed(FB_page_id);
 	// restaurantCheck();
 	console.log("cron");
-	getParsedPosts();
+	parsePosts();
 });
 
 
@@ -124,12 +124,10 @@ function getGroupFeed (feedID) {
 		function (response) {
 			if (response && !response.error) {
 
-				console.log(response.data);
+				var parsedResponse = response.data
+				console.log(parsedResponse);
 
-				parsedResponse = response.data;
 				parsedResponse.forEach(function (element, index, array) {
-					console.log(feedID);
-
 					console.log(element);
 					
 					// updated_time => group
@@ -166,7 +164,7 @@ function getGroupFeed (feedID) {
 									//						//
 
 // gets parsed posts
-function getParsedPosts() {
+function parsePosts() {
 	db.collection('raw_fb_posts', function(err, collection) {
 		
 		collection.find().toArray(function(err, cursor) {
@@ -176,8 +174,7 @@ function getParsedPosts() {
 
 					if (typeof element.message === "string") {
 						// console.log(element.message);
-						// findFood(element.message);
-						detectFood(element.message);
+						detectFood(element);
 					}
 
 					console.log("\n\n");
@@ -189,8 +186,77 @@ function getParsedPosts() {
 	});
 }
 
+// POST Detect Food in Text
 function detectFood(post) {
 	// console.log(post);
+
+	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
+	var detectURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/detect";
+
+	var options = {
+		url: detectURL+"?text="+post.message,
+		method: "POST",
+		headers: {
+		    'X-Mashape-Key': XMashapeKey,
+	        'Content-Type': "application/x-www-form-urlencoded",
+	        "Accept": "application/json"
+		}
+	};
+
+	request(options, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			organizeDetectedFood(JSON.parse(body), post.time);
+		}
+		else {
+			console.log("...what?");
+		}
+	});
+}
+
+// organizes the retrieved food data
+function organizeDetectedFood (res, time) {
+
+	var annotations = res.annotations;
+	annotations = annotations.map (function (element, index) {
+		return element.annotation;
+	});
+	
+	for (var i = 0; i < annotations.length; i++) {
+		for (var j = 0; j < annotations.length; j++) {
+			if (i !== j) {
+				if (annotations[j].includes(annotations[i])) {
+					annotations[i] = "";
+				}
+			}
+		}
+	}
+
+	annotations = annotations.filter (function (element, index) {
+		return element !== "";
+	});
+
+	console.log(annotations);
+	console.log(time);
+	console.log("");
+
+	if (annotations.length > 0) {
+		var elements = {"Date":time, "Time":time, "Food": annotations.toString(), 
+						"Sponsor": "", "Location": "", "Other": ""};
+		db.collection("events_list", function(err, collection) {	
+			collection.update(elements, elements, {upsert: true});
+		});
+	}
+
+// var elements = {"message":element.message, "time":time, "id":element.id};
+
+// db.collection('raw_fb_posts', function(err, collection) {	
+// 	collection.update(elements, elements, {upsert: true});
+// });
+
+	// console.log(food_list);
+
+	// food_list = [];
+
 }
 
 // initiates food parsing methods
@@ -297,8 +363,6 @@ function combineTwoConsecutive (post, i, word_1, word_2) {
 
 // POST Classify Cuisine
 function classifyCuisine (food) {
-	// console.log("classify");
-
 	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
 	var classifyURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/recipes/cuisine";
 
@@ -324,27 +388,10 @@ function classifyCuisine (food) {
 			// console.log("classify...what?");
 		}
 	});
-
-	// $.ajax ({
-	// 	method: "POST",
-	// 	url: classifyURL+"?ingredientList=<required>&title="+food,
-	//     headers: {
-	//         'X-Mashape-Key': XMashapeKey,
-	//         'Content-Type': "application/x-www-form-urlencoded",
-	//         "Accept": "application/json"
-	//     }
-	// }).done(function (data) {
-	// 	// console.log(data);
-	// 	// ensures confidence is adequate and item not already in list
-	// 	if (data.confidence > 0.6 && food_list.indexOf(food) === -1) {
-	// 		food_list.push(food);
-	// 	}
-	// });
 }
 
 // GET Autocomplete Ingredient Search
 function ingredientSearch (food) {
-
 	var XMashapeKey = "0atm2jxrnFmshGsjqilnw6RdP876p19vfWwjsnbHov0EhTGVAK";
 	var ingredientSearchURL = "https://spoonacular-recipe-food-nutrition-v1.p.mashape.com/food/ingredients/autocomplete";
 	
@@ -377,26 +424,6 @@ function ingredientSearch (food) {
 		}
 	});
 
-
-	// $.ajax ({
-	// 	method: "GET",
-	// 	url: ingredientSearchURL+"?metaInformation=false&number=10&query="+food,
-	//     headers: {
-	//         'X-Mashape-Key': XMashapeKey,
-	//         'Content-Type': "application/x-www-form-urlencoded",
-	//         "Accept": "application/json"
-	//     }
-	// }).done(function (data) {
-	// 	// check each returned ingredient for complete instance of passed in food
-	// 	for (var i = 0; i < data.length; i++) {
-	// 		var word_list = getWords(data[i].name);
-	// 		// ensures food is an ingredient and not already in the food list
-	// 		if (word_list.indexOf(food) !== -1 && food_list.indexOf(food) === -1) {
-	// 			food_list.push(food);
-	// 			break;
-	// 		}
-	// 	}
-	// });
 }
 
 // returns a list of all the words including the full string
